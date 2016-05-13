@@ -11,6 +11,11 @@
 
 const winston = require('winston');
 
+let consoleTransport = new (winston.transports.Console)({
+  level: 'info',
+  prettyPrint: true,
+});
+
 class PolymerLogger {
 
   /**
@@ -25,13 +30,7 @@ class PolymerLogger {
   constructor(options) {
     options = options || {};
 
-    let consoleTransport = new (winston.transports.Console)({
-      level: options.level || 'info',
-      label: options.name || null,
-      prettyPrint: true,
-    });
-
-    this._logger =  new (winston.Logger)({transports: [consoleTransport]});
+    this._logger = new (winston.Logger)({transports: [consoleTransport]});
     this._logger.cli();
 
     /**
@@ -72,7 +71,7 @@ class PolymerLogger {
    * @return {string}
    */
   get level() {
-    return this._logger.transports.console.level;
+    return consoleTransport.level;
   }
 
   /**
@@ -83,7 +82,7 @@ class PolymerLogger {
    * @return {void}
    */
   set level(newLevel) {
-    this._logger.transports.console.level = newLevel;
+    consoleTransport.level = newLevel;
   }
 
   /**
@@ -100,9 +99,8 @@ class PolymerLogger {
 
 }
 
-module.exports = {
 
-  level:'info',
+module.exports = {
 
   /**
    * Set all future loggers created, across the application, to be verbose.
@@ -110,7 +108,7 @@ module.exports = {
    * @return {void}
    */
   setVerbose: function() {
-    this.level = 'debug';
+    consoleTransport.level = 'debug';
   },
 
   /**
@@ -119,7 +117,7 @@ module.exports = {
    * @return {void}
    */
   setQuiet: function() {
-    this.level = 'error';
+    consoleTransport.level = 'error';
   },
 
   /**
@@ -129,10 +127,9 @@ module.exports = {
    * @param  {string} name The name of the logger, useful for grouping messages
    * @return {PolymerLogger}
    */
-  getLogger: function(name) {
+  getLogger: function() {
     return new PolymerLogger({
       level: this.level,
-      name: name,
     });
   },
 
