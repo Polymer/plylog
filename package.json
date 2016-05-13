@@ -1,6 +1,6 @@
 {
   "name": "plylog",
-  "version": "0.3.0",
+  "version": "0.4.0",
   "description": "A logger for the Polymer CLI toolchain",
   "main": "index.js",
   "scripts": {
