@@ -13,7 +13,7 @@
 const winston = require('winston');
 const assert = require('chai').assert;
 const sinon = require('sinon');
-const logging = require('../index.js');
+const logging = require('../lib/index.js');
 
 suite('plylog', () => {
 
