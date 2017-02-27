@@ -9,6 +9,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 <!-- New PRs should document their changes here. -->
 * Add the ability to provide a new default transport.
+* [Breaking] Log level is now a property on `defaultConfig`, not on the module export directly.
+
 
 ## [0.3.0] - 2016-05-13
 

@@ -6,7 +6,8 @@
   "typings": "index.d.ts",
   "scripts": {
     "test": "mocha test/ --ui tdd",
-    "prepublish": "tsc"
+    "build": "tsc",
+    "prepublish": "npm run build"
   },
   "keywords": [
     "polymer",
@@ -20,6 +21,9 @@
     "winston": "^2.2.0"
   },
   "devDependencies": {
+    "@types/chai": "^3.4.35",
+    "@types/mocha": "^2.2.39",
+    "@types/sinon": "^1.16.35",
     "chai": "^3.5.0",
     "mocha": "^3.2.0",
     "sinon": "^1.17.4",

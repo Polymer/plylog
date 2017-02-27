@@ -10,10 +10,10 @@
 
 'use strict';
 
-const winston = require('winston');
-const assert = require('chai').assert;
-const sinon = require('sinon');
-const logging = require('../index.js');
+import * as winston from 'winston';
+import {assert} from 'chai';
+import * as sinon from 'sinon';
+import * as logging from '../index';
 
 suite('plylog', () => {
 
@@ -30,7 +30,7 @@ suite('plylog', () => {
 
     test('sets the level of all future loggers to "debug"', () => {
       logging.setVerbose();
-      assert.equal(logging.level, 'debug');
+      assert.equal(logging.defaultConfig.level, 'debug');
       let logger = logging.getLogger('TEST_LOGGER');
       assert.equal(logger._logger.transports.console.level, 'debug');
     });
@@ -41,7 +41,7 @@ suite('plylog', () => {
 
     test('sets the level of all future loggers to "error"', () => {
       logging.setQuiet();
-      assert.equal(logging.level, 'error');
+      assert.equal(logging.defaultConfig.level, 'error');
       let logger = logging.getLogger('TEST_LOGGER');
       assert.equal(logger._logger.transports.console.level, 'error');
     });

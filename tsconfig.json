@@ -19,10 +19,8 @@
         "sourceMap": true,
         "pretty": true
     },
-    "include": [
-        "index.ts"
-    ],
-    "exclude": [
-        "node_modules"
+    "files": [
+        "index.ts",
+        "test/index_test.ts"
     ]
 }
