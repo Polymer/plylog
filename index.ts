@@ -30,7 +30,7 @@ export class PolymerLogger {
   constructor(options: Options) {
     options = options || {};
 
-    const transport = transportFactory({
+    const transport = defaultConfig.transportFactory({
       level: options.level || 'info',
       label: options.name || null,
       prettyPrint: true,
@@ -39,40 +39,36 @@ export class PolymerLogger {
     this._logger = new winston.Logger({transports: [transport]});
     this._logger.cli();
 
-    /**
-     * Logs an ERROR message, if the log level allows it. These should be used
-     * to give the user information about a serious error that occurred. Usually
-     * used right before the process exits.
-     */
     this.error = this._log.bind(this, 'error');
-
-    /**
-     * Logs a WARN message, if the log level allows it. These should be used
-     * to give the user information about some unexpected issue that was
-     * encountered. Usually the process is able to continue, but the user should
-     * still be concerned and hopefully investigate further.
-     */
     this.warn = this._log.bind(this, 'warn');
-
-    /**
-     * Logs an INFO message, if the log level allows it. These should be used
-     * to give the user generatl information about the process, including progress
-     * updates and status messages.
-     */
     this.info = this._log.bind(this, 'info');
-
-    /**
-     * Logs a DEBUG message, if the log level allows it. These should be used
-     * to give the user useful information for debugging purposes. These will
-     * generally only be displayed when the user is are troubleshooting an
-     * issue.
-     */
     this.debug = this._log.bind(this, 'debug');
-
   }
+  /**
+   * Logs an ERROR message, if the log level allows it. These should be used
+   * to give the user information about a serious error that occurred. Usually
+   * used right before the process exits.
+   */
   error: (...valsToLog:any[]) => void;
+  /**
+   * Logs a WARN message, if the log level allows it. These should be used
+   * to give the user information about some unexpected issue that was
+   * encountered. Usually the process is able to continue, but the user should
+   * still be concerned and hopefully investigate further.
+   */
   warn: (...valsToLog:any[]) => void;
+  /**
+   * Logs an INFO message, if the log level allows it. These should be used
+   * to give the user generatl information about the process, including progress
+   * updates and status messages.
+   */
   info: (...valsToLog:any[]) => void;
+  /**
+   * Logs a DEBUG message, if the log level allows it. These should be used
+   * to give the user useful information for debugging purposes. These will
+   * generally only be displayed when the user is are troubleshooting an
+   * issue.
+   */
   debug: (...valsToLog:any[]) => void;
 
   /**
@@ -109,20 +105,30 @@ export class PolymerLogger {
 
 }
 
-export let level: Level = 'info';
+export const defaultConfig = {
+  level: 'info' as Level,
+
+  /**
+   * Replace this to replace the default transport factor for all future
+   * loggers.
+   */
+  transportFactory(options: winston.TransportOptions): winston.TransportInstance {
+    return new winston.transports.Console(options);
+  }
+}
 
 /**
  * Set all future loggers created, across the application, to be verbose.
  */
 export function setVerbose() {
-  level = 'debug';
+  defaultConfig.level = 'debug';
 };
 
 /**
  * Set all future loggers created, across the application, to be quiet.
  */
 export function setQuiet() {
-  level = 'error';
+  defaultConfig.level = 'error';
 }
 
 /**
@@ -134,14 +140,8 @@ export function setQuiet() {
  */
 export function getLogger(name?: string): PolymerLogger {
   return new PolymerLogger({
-    level: level,
+    level: defaultConfig.level,
     name: name,
   });
 }
 
-/**
- * Replace this to replace the default transport factor for all future loggers.
- */
-export function transportFactory(options: winston.TransportOptions): winston.TransportInstance {
-  return new winston.transports.Console(options);
-}
