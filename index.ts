@@ -9,29 +9,34 @@
  */
 'use strict';
 
-const winston = require('winston');
+import * as winston from 'winston';
 
-class PolymerLogger {
+export type Level = 'error'|  'warn' | 'info'| 'verbose'| 'debug'| 'silly';
+export type Options = {
+  /** The minimum severity to log, defaults to 'info' */
+  level?: Level;
+  name?: string;
+}
+
+export class PolymerLogger {
+  _logger: winston.LoggerInstance;
 
   /**
    * Constructs a new instance of PolymerLogger. This creates a new internal
    * `winston` logger, which is what we use to handle most of our logging logic.
    *
-   * @constructor
-   * @param  {Object} [options]
-   * @param  {string} [options.level] The minimum severity to log, defaults to 'info'
-   * @return {void}
+   * Should generally called with getLogger() instead of calling directly.
    */
-  constructor(options) {
+  constructor(options: Options) {
     options = options || {};
 
-    let consoleTransport = new (winston.transports.Console)({
+    const transport = transportFactory({
       level: options.level || 'info',
       label: options.name || null,
       prettyPrint: true,
     });
 
-    this._logger =  new (winston.Logger)({transports: [consoleTransport]});
+    this._logger = new winston.Logger({transports: [transport]});
     this._logger.cli();
 
     /**
@@ -65,6 +70,10 @@ class PolymerLogger {
     this.debug = this._log.bind(this, 'debug');
 
   }
+  error: (...valsToLog:any[]) => void;
+  warn: (...valsToLog:any[]) => void;
+  info: (...valsToLog:any[]) => void;
+  debug: (...valsToLog:any[]) => void;
 
   /**
    * Read the instance's level from our internal logger.
@@ -100,40 +109,39 @@ class PolymerLogger {
 
 }
 
-module.exports = {
+export let level: Level = 'info';
 
-  level:'info',
-
-  /**
-   * Set all future loggers created, across the application, to be verbose.
-   *
-   * @return {void}
-   */
-  setVerbose: function() {
-    this.level = 'debug';
-  },
-
-  /**
-   * Set all future loggers created, across the application, to be quiet.
-   *
-   * @return {void}
-   */
-  setQuiet: function() {
-    this.level = 'error';
-  },
-
-  /**
-   * Create a new logger with the given name label. It will inherit the global
-   * level if one has been set within the application.
-   *
-   * @param  {string} name The name of the logger, useful for grouping messages
-   * @return {PolymerLogger}
-   */
-  getLogger: function(name) {
-    return new PolymerLogger({
-      level: this.level,
-      name: name,
-    });
-  },
-
+/**
+ * Set all future loggers created, across the application, to be verbose.
+ */
+export function setVerbose() {
+  level = 'debug';
 };
+
+/**
+ * Set all future loggers created, across the application, to be quiet.
+ */
+export function setQuiet() {
+  level = 'error';
+}
+
+/**
+ * Create a new logger with the given name label. It will inherit the global
+ * level if one has been set within the application.
+ *
+ * @param  {string} name The name of the logger, useful for grouping messages
+ * @return {PolymerLogger}
+ */
+export function getLogger(name?: string): PolymerLogger {
+  return new PolymerLogger({
+    level: level,
+    name: name,
+  });
+}
+
+/**
+ * Replace this to replace the default transport factor for all future loggers.
+ */
+export function transportFactory(options: winston.TransportOptions): winston.TransportInstance {
+  return new winston.transports.Console(options);
+}
