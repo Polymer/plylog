@@ -80,4 +80,34 @@ suite('plylog', () => {
 
   });
 
+  suite('default transport factory', () => {
+    let initialTransportFactory = undefined as any;
+    setup(() => {
+      initialTransportFactory = logging.defaultConfig.transportFactory;
+    });
+    teardown(() => {
+      logging.defaultConfig.transportFactory = initialTransportFactory;
+    });
+
+    test('is used when instantiating a new logger', () => {
+      class InstanceTrackingLogger extends winston.Transport {
+        static instances: InstanceTrackingLogger[] = [];
+
+        constructor(options: any) {
+          super(options);
+          InstanceTrackingLogger.instances.push(this);
+        }
+
+        log(_level:logging.Level, _msg: string, _meta: any, callback: () => void) {
+          callback && callback()
+        }
+      }
+      logging.defaultConfig.transportFactory = (options) => new InstanceTrackingLogger(options);
+
+      assert.lengthOf(InstanceTrackingLogger.instances, 0);
+      logging.getLogger('foo');
+      assert.lengthOf(InstanceTrackingLogger.instances, 1);
+    });
+
+  });
 });
