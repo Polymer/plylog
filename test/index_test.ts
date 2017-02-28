@@ -14,6 +14,7 @@ import * as winston from 'winston';
 import {assert} from 'chai';
 import * as sinon from 'sinon';
 import * as logging from '../index';
+import * as util from 'util';
 
 suite('plylog', () => {
 
@@ -89,24 +90,37 @@ suite('plylog', () => {
       logging.defaultConfig.transportFactory = initialTransportFactory;
     });
 
-    test('is used when instantiating a new logger', () => {
-      class InstanceTrackingLogger extends winston.Transport {
-        static instances: InstanceTrackingLogger[] = [];
-
-        constructor(options: any) {
-          super(options);
-          InstanceTrackingLogger.instances.push(this);
-        }
-
-        log(_level:logging.Level, _msg: string, _meta: any, callback: () => void) {
-          callback && callback()
-        }
+    test('is used when instantiating a new logger', async () => {
+      interface InstanceTrackingTransport extends winston.TransportInstance {
+        calls: number;
       }
-      logging.defaultConfig.transportFactory = (options) => new InstanceTrackingLogger(options);
+      interface ITTStatic {
+        new (options: any): InstanceTrackingTransport;
+        instances: InstanceTrackingTransport[];
+      }
+      const InstanceTrackingTransport = function(
+            this: InstanceTrackingTransport, _options: any) {
+        InstanceTrackingTransport.instances.push(this);
+        this.calls = 0;
+      } as any as ITTStatic;
+      util.inherits(InstanceTrackingTransport, winston.Transport);
+      InstanceTrackingTransport.instances = [];
 
-      assert.lengthOf(InstanceTrackingLogger.instances, 0);
-      logging.getLogger('foo');
-      assert.lengthOf(InstanceTrackingLogger.instances, 1);
+      InstanceTrackingTransport.prototype.log = function (this: any, _level: logging.Level, _msg: string, _meta: any, callback: (err: Error|null, success: boolean) => void) {
+        this.calls++;
+        callback(null, true);
+      };
+
+      logging.defaultConfig.transportFactory = (options) => new InstanceTrackingTransport(options);
+
+      assert.lengthOf(InstanceTrackingTransport.instances, 0);
+      const trackedLogger = logging.getLogger('foo');
+      assert.lengthOf(InstanceTrackingTransport.instances, 1);
+
+      const instance = InstanceTrackingTransport.instances[0]!;
+      assert.equal(instance.calls, 0);
+      trackedLogger.warn('not logged anywhere, but does increment calls');
+      assert.equal(instance.calls, 1);
     });
 
   });
