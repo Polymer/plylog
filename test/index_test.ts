@@ -11,6 +11,7 @@
 'use strict';
 
 import * as winston from 'winston';
+import * as stream from 'stream';
 import {assert} from 'chai';
 import * as sinon from 'sinon';
 import * as logging from '../index';
@@ -22,7 +23,7 @@ suite('plylog', () => {
 
     test('creates an internal winston logger with the given logger when instantiated', () => {
       let logger = logging.getLogger('TEST_LOGGER');
-      assert.instanceOf(logger['_logger'], winston.Logger);
+      assert.instanceOf(logger['_logger'], stream.Stream);
     });
 
   });
@@ -33,7 +34,7 @@ suite('plylog', () => {
       logging.setVerbose();
       assert.equal(logging.defaultConfig.level, 'debug');
       let logger = logging.getLogger('TEST_LOGGER');
-      assert.equal(logger['_logger'].transports.console.level, 'debug');
+      assert.equal(logger['_logger'].transports[0].level, 'debug');
     });
 
   });
@@ -44,7 +45,7 @@ suite('plylog', () => {
       logging.setQuiet();
       assert.equal(logging.defaultConfig.level, 'error');
       let logger = logging.getLogger('TEST_LOGGER');
-      assert.equal(logger['_logger'].transports.console.level, 'error');
+      assert.equal(logger['_logger'].transports[0].level, 'error');
     });
 
   });
@@ -54,15 +55,15 @@ suite('plylog', () => {
     test('changes its internal logger\'s level when level property is changed', () => {
       let logger = logging.getLogger('TEST_LOGGER');
       logger.level = 'info';
-      assert.equal(logger['_logger'].transports.console.level, 'info');
+      assert.equal(logger['_logger'].transports[0].level, 'info');
       logger.level = 'debug';
-      assert.equal(logger['_logger'].transports.console.level, 'debug');
+      assert.equal(logger['_logger'].transports[0].level, 'debug');
      });
 
     test('reads its internal logger\'s level when the level property is read', () => {
       let logger = logging.getLogger('TEST_LOGGER');
       logger.level = 'silly';
-      assert.equal(logger['_logger'].transports.console.level, 'silly');
+      assert.equal(logger['_logger'].transports[0].level, 'silly');
       assert.equal(logger.level, 'silly');
      });
 
@@ -91,7 +92,7 @@ suite('plylog', () => {
     });
 
     test('is used when instantiating a new logger', async () => {
-      interface InstanceTrackingTransport extends winston.TransportInstance {
+      interface InstanceTrackingTransport extends winston.transports.StreamTransportInstance {
         calls: number;
       }
       interface ITTStatic {
@@ -103,7 +104,7 @@ suite('plylog', () => {
         InstanceTrackingTransport.instances.push(this);
         this.calls = 0;
       } as any as ITTStatic;
-      util.inherits(InstanceTrackingTransport, winston.Transport);
+      util.inherits(InstanceTrackingTransport, winston.transports.Stream);
       InstanceTrackingTransport.instances = [];
 
       InstanceTrackingTransport.prototype.log = function (this: any, _level: logging.Level, _msg: string, _meta: any, callback: (err: Error|null, success: boolean) => void) {
