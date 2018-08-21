@@ -10,6 +10,7 @@
 'use strict';
 
 import * as winston from 'winston';
+import * as Transport from 'winston-transport';
 
 export type Level = 'error'|  'warn' | 'info'| 'verbose'| 'debug'| 'silly';
 export type Options = {
@@ -19,8 +20,8 @@ export type Options = {
 }
 
 export class PolymerLogger {
-  private readonly  _logger: winston.LoggerInstance;
-  private readonly _transport: winston.TransportInstance;
+  private readonly _logger: winston.Logger;
+  private readonly _transport: Transport;
 
   /**
    * Constructs a new instance of PolymerLogger. This creates a new internal
@@ -33,12 +34,10 @@ export class PolymerLogger {
 
     this._transport = defaultConfig.transportFactory({
       level: options.level || 'info',
-      label: options.name || null,
-      prettyPrint: true,
+      format: winston.format.prettyPrint(),
     });
 
-    this._logger = new winston.Logger({transports: [this._transport]});
-    this._logger.cli();
+    this._logger = winston.createLogger({transports: [this._transport]});
 
     this.error = this._log.bind(this, 'error');
     this.warn = this._log.bind(this, 'warn');
@@ -103,7 +102,7 @@ export const defaultConfig = {
    * Replace this to replace the default transport factor for all future
    * loggers.
    */
-  transportFactory(options: winston.TransportOptions): winston.TransportInstance {
+  transportFactory(options: Transport.TransportStreamOptions): Transport {
     return new winston.transports.Console(options);
   }
 }
