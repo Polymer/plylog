@@ -15,7 +15,6 @@ import * as stream from 'stream';
 import {assert} from 'chai';
 import * as sinon from 'sinon';
 import * as logging from '../index';
-import * as util from 'util';
 
 suite('plylog', () => {
 
@@ -92,28 +91,29 @@ suite('plylog', () => {
     });
 
     test('is used when instantiating a new logger', async () => {
-      interface InstanceTrackingTransport extends winston.transports.StreamTransportInstance {
-        calls: number;
+      class InstanceTrackingTransport extends winston.transports.Stream {
+        calls: number = 0;
+        constructor(options: any) {
+          super({ stream: process.stdout, ...options });
+          InstanceTrackingTransport.instances.push(this);
+          this.on('log', () => ++this.calls);
+        }
+        write(chunk: any, encoding?: string | ((error?: Error | null |undefined) => void), callback?: (error?: Error | null | undefined) => void): boolean {
+          ++this.calls;
+          if (typeof encoding === 'string') {
+            super.write(chunk, encoding, callback);
+          } else {
+            super.write(chunk, encoding);
+          }
+          return true;
+        }
+        static instances: InstanceTrackingTransport[] = [];
       }
-      interface ITTStatic {
-        new (options: any): InstanceTrackingTransport;
-        instances: InstanceTrackingTransport[];
-      }
-      const InstanceTrackingTransport = function(
-            this: InstanceTrackingTransport, _options: any) {
-        InstanceTrackingTransport.instances.push(this);
-        this.calls = 0;
-      } as any as ITTStatic;
-      util.inherits(InstanceTrackingTransport, winston.transports.Stream);
-      InstanceTrackingTransport.instances = [];
 
-      InstanceTrackingTransport.prototype.log = function (this: any, _level: logging.Level, _msg: string, _meta: any, callback: (err: Error|null, success: boolean) => void) {
-        this.calls++;
-        callback(null, true);
+      logging.defaultConfig.transportFactory = (options) => {
+        return new InstanceTrackingTransport(options);
       };
-
-      logging.defaultConfig.transportFactory = (options) => new InstanceTrackingTransport(options);
-
+      
       assert.lengthOf(InstanceTrackingTransport.instances, 0);
       const trackedLogger = logging.getLogger('foo');
       assert.lengthOf(InstanceTrackingTransport.instances, 1);
