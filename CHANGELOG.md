@@ -6,6 +6,9 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
 <!--## Unreleased-->
+
+* Fixed output to colorize the loglevel and use simple non-json output for string messages.
+
 <!--
   New PRs should document their changes here, uncommenting the Unreleased
   heading as necessary.

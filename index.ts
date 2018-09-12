@@ -34,7 +34,10 @@ export class PolymerLogger {
 
     this._transport = defaultConfig.transportFactory({
       level: options.level || 'info',
-      format: winston.format.prettyPrint(),
+      format: winston.format.combine(
+        winston.format.colorize(),
+        winston.format.simple()
+      ),
     });
 
     this._logger = winston.createLogger({transports: [this._transport]});
