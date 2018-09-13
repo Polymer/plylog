@@ -9,7 +9,10 @@
  */
 'use strict';
 
+import { inspect } from 'util';
+import { MESSAGE, SPLAT } from 'triple-beam';
 import * as winston from 'winston';
+import { format ,  TransformableInfo } from 'logform';
 import * as Transport from 'winston-transport';
 
 export type Level = 'error'|  'warn' | 'info'| 'verbose'| 'debug'| 'silly';
@@ -17,7 +20,18 @@ export type Options = {
   /** The minimum severity to log, defaults to 'info' */
   readonly level?: Level;
   readonly name?: string;
+  readonly colorize?: boolean;
 }
+
+const plylogPrettify = format((info: TransformableInfo, opts: any) => {
+  if (info[SPLAT]) {
+    for (const splat of info[SPLAT]) {
+      info.message += '\n' + inspect(splat, false, opts.depth || null, opts.colorize);
+    }
+  }
+  info[MESSAGE] = `${info.level}:${info.message}`;
+  return info;
+});
 
 export class PolymerLogger {
   private readonly _logger: winston.Logger;
@@ -30,14 +44,17 @@ export class PolymerLogger {
    * Should generally called with getLogger() instead of calling directly.
    */
   constructor(options: Options) {
-    options = options || {};
+    options = Object.assign({colorize: true}, options);
 
+    const formats = [];
+    if (options.colorize) {
+      formats.push(winston.format.colorize());
+    }
+    formats.push(winston.format.align());
+    formats.push(plylogPrettify({ colorize: options.colorize }));
     this._transport = defaultConfig.transportFactory({
       level: options.level || 'info',
-      format: winston.format.combine(
-        winston.format.colorize(),
-        winston.format.simple()
-      ),
+      format: winston.format.combine(...formats),
     });
 
     this._logger = winston.createLogger({transports: [this._transport]});
