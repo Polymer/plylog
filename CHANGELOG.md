@@ -7,12 +7,15 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 <!--## Unreleased-->
 
-* Fixed output to colorize the loglevel and use simple non-json output for string messages.
-
 <!--
   New PRs should document their changes here, uncommenting the Unreleased
   heading as necessary.
 -->
+
+## [1.1.0] - 2018-09-14
+
+* Fixed output to colorize the loglevel and use simple non-json output for string messages.
+* Added a `colorize` boolean option to logger constructor to enable turning colors off (on by default).
 
 ## [1.0.0] - 2018-08-21
 
